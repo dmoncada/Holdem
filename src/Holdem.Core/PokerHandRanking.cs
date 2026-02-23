@@ -17,6 +17,7 @@ namespace Holdem.Core
         private PokerHandRanking(Category category, int[] kickers)
         {
             Category = category;
+
             Kickers = kickers;
         }
 
@@ -39,7 +40,7 @@ namespace Holdem.Core
             ArgumentOutOfRangeException.ThrowIfNotEqual(hand.Count(), 5);
 
             int rankMask = 0;
-            var rankCount = new int[15]; // <- indices 0, 1 unused.
+            var rankCount = new int[15]; // <- Indices 0, 1 unused.
             var suitCount = new int[4];
 
             foreach (var card in hand)
@@ -139,7 +140,8 @@ namespace Holdem.Core
             for (int high = 14; high >= 5; high--)
             {
                 int straightMask =
-                    (1 << high)
+                    0
+                    | (1 << high)
                     | (1 << (high - 1))
                     | (1 << (high - 2))
                     | (1 << (high - 3))
@@ -204,7 +206,7 @@ namespace Holdem.Core
                 }
             }
 
-            return Kickers.Length - other.Kickers.Length;
+            return 0;
         }
 
         public override int GetHashCode()

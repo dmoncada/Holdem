@@ -11,7 +11,7 @@ namespace Holdem.Core.Tests
         [InlineData("As Ks Qs Js 10s 9s")]
         public void TestHand_NotExactlyFiveCards(string s)
         {
-            var hand = s.Split(" ").Select(Card.Parse);
+            var hand = s.Split(' ').Select(Card.Parse);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => PokerHandRanking.FromHand(hand));
         }
@@ -26,8 +26,9 @@ namespace Holdem.Core.Tests
         public void TestHand_ExactlyFiveCards(string s, PokerHandCategory category)
         {
             var hand = s.Split(' ').Select(Card.Parse);
-            var ranking = PokerHandRanking.FromHand(hand);
-            Assert.Equal(category, ranking.Category);
+            var rank = PokerHandRanking.FromHand(hand);
+
+            Assert.Equal(category, rank.Category);
         }
 
         [Theory]
@@ -35,32 +36,35 @@ namespace Holdem.Core.Tests
         public void TestRanking_BestHand(string s, PokerHandCategory category)
         {
             var cards = s.Split(' ').Select(Card.Parse);
-            var ranking = PokerHandRanking.BestRanking(cards);
-            Assert.Equal(category, ranking.Category);
+            var rank = PokerHandRanking.BestRanking(cards);
+
+            Assert.Equal(category, rank.Category);
         }
 
         [Theory]
         [InlineData("4h 4c 4d 6s 7s 8s", "2s 2h 3s 3h 4s 5s")]
         public void TestRanking_Compare(string s1, string s2)
         {
-            var cards1 = s1.Split(' ').Select(Card.Parse);
-            var cards2 = s2.Split(' ').Select(Card.Parse);
-            var ranking1 = PokerHandRanking.BestRanking(cards1);
-            var ranking2 = PokerHandRanking.BestRanking(cards2);
-            Assert.True(ranking1.CompareTo(ranking2) > 0);
-            Assert.NotEqual(ranking1, ranking2);
+            var hand1 = s1.Split(' ').Select(Card.Parse);
+            var hand2 = s2.Split(' ').Select(Card.Parse);
+            var rank1 = PokerHandRanking.BestRanking(hand1);
+            var rank2 = PokerHandRanking.BestRanking(hand2);
+
+            Assert.True(rank1.CompareTo(rank2) > 0);
+            Assert.NotEqual(rank1, rank2);
         }
 
         [Theory]
         [InlineData("Qd Ks 8c Ah 9c", "Qs Kh 8c Ah 9c")]
         public void TestRanking_CompareEqual(string s1, string s2)
         {
-            var cards1 = s1.Split(' ').Select(Card.Parse);
-            var cards2 = s2.Split(' ').Select(Card.Parse);
-            var ranking1 = PokerHandRanking.BestRanking(cards1);
-            var ranking2 = PokerHandRanking.BestRanking(cards2);
-            Assert.Equal(0, ranking2.CompareTo(ranking1));
-            Assert.Equal(ranking1, ranking2);
+            var hand1 = s1.Split(' ').Select(Card.Parse);
+            var hand2 = s2.Split(' ').Select(Card.Parse);
+            var rank1 = PokerHandRanking.BestRanking(hand1);
+            var rank2 = PokerHandRanking.BestRanking(hand2);
+
+            Assert.Equal(0, rank1.CompareTo(rank2));
+            Assert.Equal(rank1, rank2);
         }
 
         [Theory]

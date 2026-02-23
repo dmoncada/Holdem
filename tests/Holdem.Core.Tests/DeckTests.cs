@@ -12,6 +12,7 @@ namespace Holdem.Core.Tests
             var deck = new Deck();
             var first = deck.Draw();
             var second = deck.Draw();
+
             Assert.NotEqual(first, second);
         }
 
@@ -34,6 +35,7 @@ namespace Holdem.Core.Tests
         {
             var deck = new Deck();
             var cards = deck.Draw(52).ToList();
+
             Assert.Equal(52, cards.Count);
             Assert.Equal(52, cards.Distinct().Count());
         }
@@ -42,17 +44,16 @@ namespace Holdem.Core.Tests
         public void TestReset_AllowsRedrawing()
         {
             var deck = new Deck();
-            int count = deck.Count;
-            var one = deck.Draw();
-
-            Assert.Equal(52, count);
+            int count1 = deck.Count;
+            var card1 = deck.Draw();
 
             deck.Reset();
-            count = deck.Count;
-            var two = deck.Draw();
+            int count2 = deck.Count;
+            var card2 = deck.Draw();
 
-            Assert.Equal(52, count);
-            Assert.Equal(one, two);
+            Assert.Equal(52, count1);
+            Assert.Equal(count1, count2);
+            Assert.Equal(card1, card2);
         }
 
         [Fact]
@@ -80,6 +81,7 @@ namespace Holdem.Core.Tests
             ];
 
             var deck = new Deck(cards);
+
             Assert.Equal(cards[0], deck.Draw());
             Assert.Equal(cards[1], deck.Draw());
             Assert.Equal(cards[2], deck.Draw());

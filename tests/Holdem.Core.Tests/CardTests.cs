@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Holdem.Core.Tests
@@ -24,6 +25,7 @@ namespace Holdem.Core.Tests
         public void TestParsing_InvalidString(string s)
         {
             Assert.False(Card.TryParse(s, out var _));
+            Assert.Throws<ArgumentException>(() => Card.Parse(s));
         }
     }
 }
