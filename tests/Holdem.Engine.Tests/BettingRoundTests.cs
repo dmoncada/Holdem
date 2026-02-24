@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Xunit;
 using static Holdem.Engine.PlayerAction;
 
@@ -102,9 +101,10 @@ namespace Holdem.Engine.Tests
             var events = new List<PokerEvent>();
             var success = true;
 
-            PlayerAction[] actions = [Bet(4), Call(4), Call(4), Fold()];
+            PlayerAction[] before = [Bet(4), Call(4), Call(4)];
+            PlayerAction[] after = [Fold(), Check()];
 
-            foreach (var action in actions)
+            foreach (var action in before.Concat(after))
             {
                 var result = round.Apply(table.Current.Id, action);
                 events.AddRange(result.Events);
@@ -112,8 +112,8 @@ namespace Holdem.Engine.Tests
                 table.MoveNext();
             }
 
-            Assert.Equal(3, events.Count(e => e is not ErrorEvent)); // 3 successes.
-            Assert.Equal(1, events.Count(e => e is ActionAfterRoundCompleted));
+            Assert.Equal(before.Length, events.Count(e => e is not ErrorEvent));
+            Assert.Equal(after.Length, events.Count(e => e is RoundAlreadyCompleteEvent));
             Assert.True(round.Complete);
             Assert.False(success);
         }
@@ -156,6 +156,47 @@ namespace Holdem.Engine.Tests
             Assert.Equal(callCount, events.Count(e => e is PlayerCalledEvent));
             Assert.Equal(total, round.Pot.Total);
             Assert.False(round.CanRaise);
+            Assert.True(round.Complete);
+            Assert.True(success);
+        }
+
+        [Fact]
+        public void TestApplyAction_ValidNoLimitRound()
+        {
+            Player[] players = [P(), P(), P()];
+            var table = new PokerTable(players);
+
+            var round = new BettingRound(table, Street.Flop, 4, new NoLimitStructure());
+            var events = new List<PokerEvent>();
+            var success = true;
+
+            PlayerAction[] actions =
+            [
+                Bet(2), // p1, $4
+                Bet(8), // p2, $8
+                Bet(14), // p3, $14
+                Call(12), // p1, $14
+                Call(6), // p2, $14
+            ];
+
+            foreach (var action in actions)
+            {
+                var result = round.Apply(table.Current.Id, action);
+                events.AddRange(result.Events);
+                success &= result.Success;
+                table.MoveNext();
+            }
+
+            int betCount = actions.Count(a => a.Type == PlayerActionType.Bet);
+            int callCount = actions.Count(a => a.Type == PlayerActionType.Call);
+            int total = actions.Sum(a => a.Amount);
+
+            Assert.Equal(actions.Length, events.Count);
+            Assert.DoesNotContain(events, e => e is ErrorEvent);
+            Assert.Equal(betCount, events.Count(e => e is PlayerBetEvent));
+            Assert.Equal(callCount, events.Count(e => e is PlayerCalledEvent));
+            Assert.Equal(total, round.Pot.Total);
+            Assert.True(round.CanRaise); // No limit, can always raise.
             Assert.True(round.Complete);
             Assert.True(success);
         }

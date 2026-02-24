@@ -9,7 +9,7 @@ namespace Holdem.Engine
     {
         public string Id { get; } = Guid.NewGuid().ToString();
         public string Name { get; } = name;
-        public int Stack { get; private set; } = stack;
+        public int Stack { get; set; } = stack;
         public bool Active { get; set; } = true;
 
         private readonly List<Card> _hole = [];

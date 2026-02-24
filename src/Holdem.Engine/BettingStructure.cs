@@ -14,7 +14,7 @@ namespace Holdem.Engine
         public abstract int ToRaise { get; }
         public abstract bool CanRaise { get; }
         public abstract bool ApplyRaise(int toCall, int amount);
-        protected abstract bool ValidateRaise(int amount, int expected);
+        protected abstract bool ValidateRaise(int expected, int amount);
 
         public bool ValidateAction(int toCall, int playerStack, PlayerAction action)
         {
@@ -31,10 +31,10 @@ namespace Holdem.Engine
                     return toCall == 0;
 
                 case PlayerActionType.Call:
-                    return amount == int.Min(playerStack, toCall);
+                    return int.Min(playerStack, toCall) == amount;
 
                 case PlayerActionType.Bet:
-                    return ValidateRaise(amount, int.Min(playerStack, toRaise));
+                    return CanRaise && ValidateRaise(int.Min(playerStack, toRaise), amount);
 
                 default:
                     throw new InvalidEnumArgumentException(type.ToString());

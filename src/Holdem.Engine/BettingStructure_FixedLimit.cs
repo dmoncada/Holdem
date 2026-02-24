@@ -27,9 +27,9 @@ namespace Holdem.Engine
             return false;
         }
 
-        protected override bool ValidateRaise(int amount, int expected)
+        protected override bool ValidateRaise(int expected, int amount)
         {
-            return CanRaise && amount == expected;
+            return amount == expected;
         }
     }
 }

@@ -13,9 +13,9 @@ namespace Holdem.Core
 
         private int _index = 0;
 
-        public Deck(bool shuffle = true)
+        public Deck()
         {
-            _cards = MakeDeck(shuffle);
+            _cards = MakeDeck();
         }
 
         public Deck(IEnumerable<Card> cards)
@@ -56,7 +56,7 @@ namespace Holdem.Core
             }
         }
 
-        private static Card[] MakeDeck(bool shuffle)
+        private static Card[] MakeDeck()
         {
             var cards = new Card[52];
             int i = 0;
@@ -67,11 +67,6 @@ namespace Holdem.Core
                 {
                     cards[i++] = new(rank, suit);
                 }
-            }
-
-            if (shuffle)
-            {
-                cards.Shuffle();
             }
 
             return cards;

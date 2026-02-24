@@ -50,7 +50,7 @@ namespace Holdem.Engine
         {
             if (Complete)
             {
-                return BettingRoundResult.Failed(new ActionAfterRoundCompleted(playerId));
+                return BettingRoundResult.Failed(new RoundAlreadyCompleteEvent(playerId));
             }
 
             if (ValidateTurn(playerId) == false)
@@ -84,9 +84,22 @@ namespace Holdem.Engine
             _blindsPosted++;
             _blind *= 2;
 
-            _pending.Remove(playerId);
+            UpdatePending(playerId);
 
             return new(new BlindPostedEvent(playerId, amount));
+        }
+
+        private void UpdatePending(string playerId)
+        {
+            if (_street == Street.Preflop && _table.IsHeadsUp)
+            {
+                // In a "heads-up" preflop betting round, both players
+                // should still be able to act after posting the blinds.
+            }
+            else
+            {
+                _pending.Remove(playerId);
+            }
         }
 
         private BettingRoundResult ApplyAction(PlayerAction action)

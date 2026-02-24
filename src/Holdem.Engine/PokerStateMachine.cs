@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Common.Extensions;
 using Holdem.Core;
 using Stateless;
+using Stateless.Graph;
 using Ranking = Holdem.Core.PokerHandRanking;
 
 namespace Holdem.Engine
@@ -58,16 +59,18 @@ namespace Holdem.Engine
         private readonly List<CommitedAction> _bettingHistory = [];
         private readonly PokerTable _table = null;
         private readonly List<Card> _board = [];
-        private readonly Deck _deck = new();
+        private readonly Deck _deck = null;
         private readonly int _smallBet;
 
         private BettingRound _round = null;
         private Street? _street = null;
         private Pot _pot = null;
 
-        public PokerStateMachine(PokerTable table, int smallBet)
+        public PokerStateMachine(PokerTable table, int smallBet, Deck deck = null)
         {
             _machine = BuildStateMachine();
+
+            _deck = deck ?? new();
 
             _smallBet = smallBet; // The smallest betting unit.
 
@@ -251,7 +254,9 @@ namespace Holdem.Engine
 
         private async Task OnBettingRoundEntryAsync()
         {
-            _table.Reset().MoveNext(); // Player to the left of button acts first.
+            _table.Reset();
+
+            AdvanceCurrentPlayer();
 
             var structure = new FixedLimitStructure(_table, _smallBet, MaxRaises);
 
@@ -260,6 +265,20 @@ namespace Holdem.Engine
             await WriteAsync(new BettingRoundStartedEvent());
 
             await SignalCurrentPlayerAsync();
+        }
+
+        private void AdvanceCurrentPlayer()
+        {
+            if (_street == Street.Preflop && _table.IsHeadsUp)
+            {
+                // In a "heads-up" preflop betting round, the blinds are reversed in order.
+                // I.e. the button posts the small blind, and the opponent posts the big blind.
+                // This means that the button should be the first player to act.
+            }
+            else
+            {
+                _table.MoveNext(); // Player to the left of button acts first.
+            }
         }
 
         public async Task ApplyActionAsync(string playerId, PlayerAction action)
@@ -335,9 +354,9 @@ namespace Holdem.Engine
             await EnsureBoardCompleteAsync();
 
             var events = new List<PokerEvent>();
-            var players = _table.AllActiveWithStack;
+            var active = _table.AllActive;
 
-            var trips = players.Select(p =>
+            var trips = active.Select(p =>
             {
                 var c = p.Hole.Concat(_board);
                 var h = Ranking.BestHand(c);
@@ -345,7 +364,7 @@ namespace Holdem.Engine
                 return (p, h, r);
             });
 
-            if (trips.Count() == 1) // Show cards.
+            if (trips.Count() > 1) // Show cards.
             {
                 foreach (var (p, h, _) in trips)
                 {
@@ -353,7 +372,23 @@ namespace Holdem.Engine
                 }
             }
 
-            // TODO(dmoncada): award pot to winner(s).
+            // TODO(dmoncada): do proper pot awarding.
+            var bestRank = trips.MaxBy(trip => trip.r).r;
+            foreach (var (player, _, rank) in trips)
+            {
+                if (rank == bestRank)
+                {
+                    events.Add(new PotAwardedEvent(player.Id, 0));
+                    player.Stack += _pot.Total;
+                }
+            }
+
+            foreach (var e in events)
+            {
+                await WriteAsync(e); // Emit events.
+            }
+
+            await AdvanceAsync();
         }
 
         private async Task EnsureBoardCompleteAsync()
@@ -385,5 +420,9 @@ namespace Holdem.Engine
         public ChannelReader<PokerEvent> Events => _channel.Reader;
 
         private readonly Channel<PokerEvent> _channel = Channel.CreateUnbounded<PokerEvent>();
+
+        public string ToUmlDot() => UmlDotGraph.Format(_machine.GetInfo());
+
+        public string ToMermaid() => MermaidGraph.Format(_machine.GetInfo());
     }
 }

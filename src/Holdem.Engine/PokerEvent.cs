@@ -56,7 +56,7 @@ namespace Holdem.Engine
     public abstract record ErrorEvent()
         : PokerEvent(DateTime.UtcNow);
 
-    public record ActionAfterRoundCompleted(string PlayerId)
+    public record RoundAlreadyCompleteEvent(string PlayerId)
         : ErrorEvent();
 
     public record OutOfTurnEvent(string PlayerId)
