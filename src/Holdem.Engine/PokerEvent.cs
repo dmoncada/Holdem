@@ -18,8 +18,8 @@ namespace Holdem.Engine
     public record BlindPostedEvent(string PlayerId, int Amount)
         : PokerEvent(DateTime.UtcNow);
 
-    // public record PlayerTurnStartedEvent(string PlayerId, PokerGameSnapshot Snapshot)
-    //     : PokerEvent(DateTime.UtcNow);
+    public record PlayerTurnStartedEvent(string PlayerId, PokerGameSnapshot Snapshot)
+        : PokerEvent(DateTime.UtcNow);
 
     public record PlayerCheckedEvent(string PlayerId)
         : PokerEvent(DateTime.UtcNow);
@@ -56,15 +56,17 @@ namespace Holdem.Engine
     public abstract record ErrorEvent()
         : PokerEvent(DateTime.UtcNow);
 
+    public record ActionAfterRoundCompleted(string PlayerId)
+        : ErrorEvent();
+
     public record OutOfTurnEvent(string PlayerId)
         : ErrorEvent();
 
-    public record BlindErrorEvent(string PlayerId, PlayerAction Action, int BlindAmout)
+    public record InvalidBlindEvent(string PlayerId, PlayerAction Action, int BlindAmout)
         : ErrorEvent();
 
-    public record InvalidActionEvent(string PlayerId, PlayerAction Action, PlayerContext Context)
+    public record InvalidActionEvent(string PlayerId, PlayerAction Action, BettingContext Context)
         : ErrorEvent();
-
 
     #endregion Failure Events
 }

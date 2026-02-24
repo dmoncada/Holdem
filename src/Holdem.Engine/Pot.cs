@@ -21,7 +21,10 @@ namespace Holdem.Engine
 
         public static Pot operator +(Pot left, Pot right)
         {
-            return left.Merge(right);
+            var pot = new Pot();
+            pot.Merge(left);
+            pot.Merge(right);
+            return pot;
         }
 
         public Pot Merge(Pot other)

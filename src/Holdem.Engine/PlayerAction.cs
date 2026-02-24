@@ -1,7 +1,5 @@
 namespace Holdem.Engine
 {
-    public record PlayerContext(int ToCall, int ToRaise, bool CanRaise);
-
     public readonly struct PlayerAction(PlayerActionType type, int amount)
     {
         public static PlayerAction Bet(int amount) => new(PlayerActionType.Bet, amount);

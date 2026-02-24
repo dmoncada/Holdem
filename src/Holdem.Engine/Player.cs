@@ -24,7 +24,7 @@ namespace Holdem.Engine
             _hole.Clear();
         }
 
-        public void DealCard(Card card)
+        public void TakeCard(Card card)
         {
             if (_hole.Count > 1)
             {

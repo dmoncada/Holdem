@@ -26,13 +26,13 @@ namespace Holdem.Engine.Tests
         }
 
         [Fact]
-        public void TestDealCard_MoreThanTwo()
+        public void TestTakeCard_MoreThanTwo()
         {
             var player = new Player("a", 100);
-            player.DealCard(new());
-            player.DealCard(new());
+            player.TakeCard(new());
+            player.TakeCard(new());
 
-            Assert.Throws<InvalidOperationException>(() => player.DealCard(new()));
+            Assert.Throws<InvalidOperationException>(() => player.TakeCard(new()));
         }
     }
 }
