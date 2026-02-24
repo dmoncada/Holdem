@@ -1,20 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Extensions;
-using static Common.Utils;
+using Holdem.Common.Extensions;
+using static Holdem.Common.Utils;
 using Category = Holdem.Core.PokerHandCategory;
+
+// csharpier-ignore
 
 namespace Holdem.Core
 {
-    public readonly struct PokerHandRanking
-        : IEquatable<PokerHandRanking>,
-            IComparable<PokerHandRanking>
+    public readonly struct PokerHandRanking :
+        IComparable<PokerHandRanking>,
+        IEquatable<PokerHandRanking>
     {
         public Category Category { get; }
         public int[] Kickers { get; }
 
-        private PokerHandRanking(Category category, int[] kickers)
+        private PokerHandRanking(Category category, params int[] kickers)
         {
             Category = category;
 
@@ -23,21 +25,24 @@ namespace Holdem.Core
 
         public static PokerHandRanking BestRanking(IEnumerable<Card> cards)
         {
-            ArgumentOutOfRangeException.ThrowIfLessThan(cards.Count(), 5);
+            if (cards.Count() < 5)
+                throw new ArgumentOutOfRangeException(nameof(cards));
 
             return Combine(cards.ToList(), k: 5).Max(FromHand);
         }
 
         public static IEnumerable<Card> BestHand(IEnumerable<Card> cards)
         {
-            ArgumentOutOfRangeException.ThrowIfLessThan(cards.Count(), 5);
+            if (cards.Count() < 5)
+                throw new ArgumentOutOfRangeException(nameof(cards));
 
             return Combine(cards.ToList(), k: 5).MaxBy(FromHand);
         }
 
         public static PokerHandRanking FromHand(IEnumerable<Card> hand)
         {
-            ArgumentOutOfRangeException.ThrowIfNotEqual(hand.Count(), 5);
+            if (hand.Count() != 5)
+                throw new ArgumentOutOfRangeException(nameof(hand));
 
             int rankMask = 0;
             var rankCount = new int[15]; // <- Indices 0, 1 unused.
@@ -60,8 +65,8 @@ namespace Holdem.Core
             if (isFlush && straightHigh > 0)
             {
                 return straightHigh == 14
-                    ? new(Category.RoyalFlush, [14])
-                    : new(Category.StraightFlush, [straightHigh]);
+                    ? new PokerHandRanking(Category.RoyalFlush, 14)
+                    : new PokerHandRanking(Category.StraightFlush, straightHigh);
             }
 
             int four = 0;
@@ -84,47 +89,47 @@ namespace Holdem.Core
             // Four of a kind.
             if (four > 0)
             {
-                return new(Category.FourOfAKind, [four, singles[0]]);
+                return new PokerHandRanking(Category.FourOfAKind, four, singles[0]);
             }
 
             // Full House.
             if (three > 0 && pairs.Count == 1)
             {
-                return new(Category.FullHouse, [three, pairs[0]]);
+                return new PokerHandRanking(Category.FullHouse, three, pairs[0]);
             }
 
             // Flush.
             if (isFlush)
             {
-                return new(Category.Flush, GetRanksDescending(rankMask));
+                return new PokerHandRanking(Category.Flush, GetRanksDescending(rankMask));
             }
 
             // Straight.
             if (straightHigh > 0)
             {
-                return new(Category.Straight, [straightHigh]);
+                return new PokerHandRanking(Category.Straight, straightHigh);
             }
 
             // Three of a kind.
             if (three > 0)
             {
-                return new(Category.ThreeOfAKind, [three, singles[0], singles[1]]);
+                return new PokerHandRanking(Category.ThreeOfAKind, three, singles[0], singles[1]);
             }
 
             // Two pair.
             if (pairs.Count == 2)
             {
-                return new(Category.TwoPair, [pairs[0], pairs[1], singles[0]]);
+                return new PokerHandRanking(Category.TwoPair, pairs[0], pairs[1], singles[0]);
             }
 
             // One pair.
             if (pairs.Count == 1)
             {
-                return new(Category.OnePair, [pairs[0], singles[0], singles[1], singles[2]]);
+                return new PokerHandRanking( Category.OnePair, pairs[0], singles[0], singles[1], singles[2]);
             }
 
             // High card.
-            return new(Category.HighCard, GetRanksDescending(rankMask));
+            return new PokerHandRanking(Category.HighCard, GetRanksDescending(rankMask));
         }
 
         private static int GetStraightHigh(int mask)
@@ -198,11 +203,13 @@ namespace Holdem.Core
                 return Category.CompareTo(other.Category);
             }
 
-            foreach (var (left, right) in Kickers.Zip(other.Kickers))
+            int length = Math.Min(Kickers.Length, other.Kickers.Length);
+
+            for (int i = 0; i < length; i++)
             {
-                if (left != right)
+                if (Kickers[i] != other.Kickers[i])
                 {
-                    return left - right;
+                    return Kickers[i] - other.Kickers[i];
                 }
             }
 

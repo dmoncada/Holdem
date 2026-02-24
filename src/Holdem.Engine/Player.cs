@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Common.Extensions;
+using Holdem.Common.Extensions;
 using Holdem.Core;
 
 namespace Holdem.Engine

@@ -3,10 +3,16 @@ using System.Linq;
 
 namespace Holdem.Core
 {
-    public readonly struct Card(Rank rank, Suit suit) : IComparable<Card>
+    public readonly struct Card : IComparable<Card>
     {
-        public Rank Rank { get; } = rank;
-        public Suit Suit { get; } = suit;
+        public Card(Rank rank, Suit suit)
+        {
+            Rank = rank;
+            Suit = suit;
+        }
+
+        public Rank Rank { get; }
+        public Suit Suit { get; }
 
         public static Card Parse(string s) =>
             TryParse(s, out var card) ? card : throw new ArgumentException($"Unable to parse: {s}");
@@ -25,13 +31,13 @@ namespace Holdem.Core
             if (s.StartsWith("10"))
             {
                 suit = ToSuit(s.Last());
-                card = new(Rank.Ten, suit);
+                card = new Card(Rank.Ten, suit);
                 return true;
             }
 
             rank = ToRank(s.First());
             suit = ToSuit(s.Last());
-            card = new(rank, suit);
+            card = new Card(rank, suit);
             return true;
         }
 
@@ -53,13 +59,13 @@ namespace Holdem.Core
         }
 
         // csharpier-ignore
-        private static readonly string[] Deck =
-        [
+        private static readonly string[] Deck = new[]
+        {
             "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "10s", "Js", "Qs", "Ks", "As",
             "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "Jh", "Qh", "Kh", "Ah",
             "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "Jd", "Qd", "Kd", "Ad",
             "2c", "3c", "4c", "5c", "6c", "7c", "8c", "9c", "10c", "Jc", "Qc", "Kc", "Ac"
-        ];
+        };
 
         private static Rank ToRank(char c)
         {

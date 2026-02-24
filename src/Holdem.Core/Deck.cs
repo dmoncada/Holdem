@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Extensions;
+using Holdem.Common.Extensions;
 
 namespace Holdem.Core
 {
@@ -33,7 +33,7 @@ namespace Holdem.Core
             return this;
         }
 
-        public void Shuffle()
+        public virtual void Shuffle()
         {
             _cards.Shuffle();
         }
@@ -61,11 +61,11 @@ namespace Holdem.Core
             var cards = new Card[52];
             int i = 0;
 
-            foreach (var suit in Enum.GetValues<Suit>())
+            foreach (Suit suit in Enum.GetValues(typeof(Suit)))
             {
-                foreach (var rank in Enum.GetValues<Rank>())
+                foreach (Rank rank in Enum.GetValues(typeof(Rank)))
                 {
-                    cards[i++] = new(rank, suit);
+                    cards[i++] = new Card(rank, suit);
                 }
             }
 

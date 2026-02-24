@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Common.Extensions
+namespace Holdem.Common.Extensions
 {
     public static class EnumerableExtensions
     {
@@ -31,14 +31,6 @@ namespace Common.Extensions
             }
         }
 
-        public static void ForEach<T>(this IEnumerable<T> enumerable, Action<int, T> action)
-        {
-            foreach (var (index, item) in enumerable.Index())
-            {
-                action(index, item);
-            }
-        }
-
         public static IEnumerable<T> Except<T>(this IEnumerable<T> enumerable, T toRemoveItem)
         {
             return enumerable.Where(x => x.Equals(toRemoveItem) == false);
@@ -55,6 +47,40 @@ namespace Common.Extensions
         public static IEnumerable<T> Rotate<T>(this IEnumerable<T> enumerable, int k)
         {
             return enumerable.Skip(k).Concat(enumerable.Take(k));
+        }
+
+        public static TSource MaxBy<TSource, TKey>(
+            this IEnumerable<TSource> enumerable,
+            Func<TSource, TKey> selector
+        )
+            where TKey : IComparable<TKey>
+        {
+            if (enumerable == null)
+                throw new ArgumentNullException(nameof(enumerable));
+            if (selector == null)
+                throw new ArgumentNullException(nameof(selector));
+
+            using var enumerator = enumerable.GetEnumerator();
+
+            if (enumerator.MoveNext() == false)
+                throw new InvalidOperationException("Collection empty.");
+
+            var max = enumerator.Current;
+            var maxKey = selector(max);
+
+            while (enumerator.MoveNext())
+            {
+                var candidate = enumerator.Current;
+                var candidateKey = selector(candidate);
+
+                if (candidateKey.CompareTo(maxKey) > 0)
+                {
+                    max = candidate;
+                    maxKey = candidateKey;
+                }
+            }
+
+            return max;
         }
     }
 }

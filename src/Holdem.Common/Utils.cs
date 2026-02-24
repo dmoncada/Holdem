@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Common
+namespace Holdem.Common
 {
     public static class Utils
     {
@@ -45,7 +45,7 @@ namespace Common
             {
                 if (current.Count == k)
                 {
-                    result.Add(new(current));
+                    result.Add(new List<T>(current));
                     return;
                 }
 
@@ -73,7 +73,7 @@ namespace Common
                 return 1;
             }
 
-            k = int.Min(k, n - k);
+            k = Math.Min(k, n - k);
 
             long result = 1;
             // n! / k! * (n - k)!

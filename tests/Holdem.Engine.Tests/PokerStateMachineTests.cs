@@ -8,7 +8,7 @@ namespace Holdem.Engine.Tests
 {
     public class MockDeck(IEnumerable<Card> cards) : Deck(cards)
     {
-        public static new void Shuffle() { } // No-op.
+        public override void Shuffle() { } // No-op.
     }
 
     public class PokerStateMachineTests
@@ -51,6 +51,10 @@ namespace Holdem.Engine.Tests
 
             Assert.Equal(4, events.Count(e => e is HoleCardsDealtEvent));
             Assert.Equal(1, events.Count(e => e is BoardCardsDealtEvent));
+            // csharpier-ignore-start
+            Assert.Equal(2, events.Count(e => e is PlayerTurnStartedEvent d && d.PlayerId == p1.Id));
+            Assert.Equal(2, events.Count(e => e is PlayerTurnStartedEvent d && d.PlayerId == p2.Id));
+            // csharpier-ignore-end
             Assert.Equal(2, events.Count(e => e is BlindPostedEvent));
             Assert.Equal(1, events.Count(e => e is PlayerBetEvent));
             Assert.Equal(1, events.Count(e => e is PlayerCalledEvent));

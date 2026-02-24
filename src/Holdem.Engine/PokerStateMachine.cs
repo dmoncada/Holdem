@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Common.Extensions;
+using Holdem.Common.Extensions;
 using Holdem.Core;
 using Stateless;
 using Stateless.Graph;
@@ -221,7 +222,7 @@ namespace Holdem.Engine
                     break;
 
                 default:
-                    throw new Exception($"Unexpected value: {_street}");
+                    throw new InvalidEnumArgumentException(_street.ToString());
             }
 
             foreach (var e in events)
@@ -373,7 +374,7 @@ namespace Holdem.Engine
             }
 
             // TODO(dmoncada): do proper pot awarding.
-            var bestRank = trips.MaxBy(trip => trip.r).r;
+            var bestRank = Enumerable.MaxBy(trips, trip => trip.r).r;
             foreach (var (player, _, rank) in trips)
             {
                 if (rank == bestRank)

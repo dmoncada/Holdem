@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace Common.Extensions
+namespace Holdem.Common.Extensions
 {
     public static class ListExtensions
     {
-        private static readonly Random Random = new(Guid.NewGuid().GetHashCode());
+        private static readonly Random Random = new Random(Guid.NewGuid().GetHashCode());
 
         public static List<T> Sorted<T>(this List<T> list)
         {
