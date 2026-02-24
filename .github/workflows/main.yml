@@ -1,0 +1,29 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  SLN: Holdem.sln
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # Restore
+      - run: dotnet restore $SLN
+
+      # Build
+      - run: dotnet build $SLN --configuration Release --no-restore -warnaserror
+
+      # Test
+      - run: dotnet test $SLN --configuration Release --no-build --logger="console;verbosity=normal"
