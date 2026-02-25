@@ -80,8 +80,9 @@ namespace Holdem.Engine
             Reset();
         }
 
-        public bool InDealState => DealStates.Contains(CurrentState);
-        public bool InBettingState => BettingStates.Contains(CurrentState);
+        public bool IsReady => CurrentState == State.WaitingForPlayers;
+        public bool IsDealing => DealStates.Contains(CurrentState);
+        public bool IsBetting => BettingStates.Contains(CurrentState);
         private State CurrentState => _machine?.State ?? State.WaitingForPlayers;
         private int NumActive => _table.AllActiveWithStack.Count();
 
@@ -166,14 +167,14 @@ namespace Holdem.Engine
 
         public async Task AdvanceAsync()
         {
-            if (InBettingState && _round.Complete == false)
+            if (IsBetting && _round.Complete == false)
             {
                 throw new InvalidOperationException("Cannot advance, betting round ongoing.");
             }
 
             var trigger = Trigger.NextState;
 
-            if (InBettingState && NumActive <= 1)
+            if (IsBetting && NumActive <= 1)
             {
                 trigger = Trigger.ToShowdown;
             }
@@ -183,10 +184,13 @@ namespace Holdem.Engine
 
         private void Reset()
         {
-            _table.Reset().AllActiveWithStack.ForEach(p => p.Reset());
+            _table.Reset();
+            _table.AllActiveWithStack.ForEach(p => p.Reset());
+
+            _deck.Reset();
+            _deck.Shuffle();
 
             _bettingHistory.Clear();
-            _deck.Reset().Shuffle();
             _board.Clear();
 
             _round = null;
@@ -196,12 +200,11 @@ namespace Holdem.Engine
 
         private async Task OnDealCardsEntryAsync()
         {
+            var events = new List<PokerEvent>();
+
             _street = _street?.Next() ?? Street.Preflop;
 
             var street = _street.Value;
-
-            var events = new List<PokerEvent>();
-
             switch (street)
             {
                 case Street.Preflop:
@@ -222,7 +225,7 @@ namespace Holdem.Engine
                     break;
 
                 default:
-                    throw new InvalidEnumArgumentException(_street.ToString());
+                    throw new InvalidEnumArgumentException(nameof(_street));
             }
 
             foreach (var e in events)
@@ -284,7 +287,7 @@ namespace Holdem.Engine
 
         public async Task ApplyActionAsync(string playerId, PlayerAction action)
         {
-            if (InBettingState == false)
+            if (IsBetting == false)
             {
                 throw new InvalidOperationException("Not in betting state.");
             }
@@ -354,39 +357,37 @@ namespace Holdem.Engine
 
             await EnsureBoardCompleteAsync();
 
-            var events = new List<PokerEvent>();
             var active = _table.AllActive;
 
-            var trips = active.Select(p =>
+            var trips = active.Select(player =>
             {
-                var c = p.Hole.Concat(_board);
+                var p = player.Id;
+                var c = player.Hole.Concat(_board);
                 var h = Ranking.BestHand(c);
                 var r = Ranking.FromHand(h);
-                return (p, h, r);
+                return new Contestant(p, h, r);
             });
 
             if (trips.Count() > 1) // Show cards.
             {
                 foreach (var (p, h, _) in trips)
                 {
-                    events.Add(new HandShownEvent(p.Id, h.OrderDescending().AsString()));
+                    await WriteAsync(new HandShownEvent(p, h.OrderDescending().AsString()));
                 }
             }
 
-            // TODO(dmoncada): do proper pot awarding.
-            var bestRank = Enumerable.MaxBy(trips, trip => trip.r).r;
-            foreach (var (player, _, rank) in trips)
-            {
-                if (rank == bestRank)
-                {
-                    events.Add(new PotAwardedEvent(player.Id, 0));
-                    player.Stack += _pot.Total;
-                }
-            }
+            var events = _pot.Award(trips);
 
             foreach (var e in events)
             {
-                await WriteAsync(e); // Emit events.
+                if (e is PotAwardedEvent p)
+                {
+                    var player = active.Single(a => a.Id == p.PlayerId);
+
+                    player.Stack += p.Amount;
+                }
+
+                await WriteAsync(e);
             }
 
             await AdvanceAsync();

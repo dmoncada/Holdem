@@ -49,6 +49,36 @@ namespace Holdem.Common.Extensions
             return enumerable.Skip(k).Concat(enumerable.Take(k));
         }
 
+        public static IEnumerable<(T1, T2)> Zip<T1, T2>(
+            IEnumerable<T1> enum1,
+            IEnumerable<T2> enum2
+        )
+        {
+            using var e1 = enum1.GetEnumerator();
+            using var e2 = enum2.GetEnumerator();
+
+            while (e1.MoveNext() && e2.MoveNext())
+            {
+                yield return (e1.Current, e2.Current);
+            }
+        }
+
+        public static IEnumerable<(T1, T2, T3)> Zip<T1, T2, T3>(
+            IEnumerable<T1> enum1,
+            IEnumerable<T2> enum2,
+            IEnumerable<T3> enum3
+        )
+        {
+            using var e1 = enum1.GetEnumerator();
+            using var e2 = enum2.GetEnumerator();
+            using var e3 = enum3.GetEnumerator();
+
+            while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext())
+            {
+                yield return (e1.Current, e2.Current, e3.Current);
+            }
+        }
+
         public static TSource MaxBy<TSource, TKey>(
             this IEnumerable<TSource> enumerable,
             Func<TSource, TKey> selector

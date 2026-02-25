@@ -6,7 +6,7 @@ namespace Holdem.Engine
 {
     public class PokerTable(IEnumerable<Player> players, int button = 0) // : IEnumerator<Player>
     {
-        private readonly List<Player> _players = players.ToList();
+        private readonly List<Player> _players = [.. players];
 
         private int _button = button;
         private int _index = button;
@@ -17,11 +17,9 @@ namespace Holdem.Engine
         public bool IsHeadsUp => _players.Count(p => p.CanAct) == 2;
         public Player Current => _players[_index];
 
-        public PokerTable Reset()
+        public void Reset()
         {
             _index = _button;
-
-            return this;
         }
 
         public bool MoveNext()

@@ -37,7 +37,7 @@ namespace Holdem.Engine
                     return CanRaise && ValidateRaise(int.Min(playerStack, toRaise), amount);
 
                 default:
-                    throw new InvalidEnumArgumentException(type.ToString());
+                    throw new InvalidEnumArgumentException(nameof(type));
             }
         }
     }

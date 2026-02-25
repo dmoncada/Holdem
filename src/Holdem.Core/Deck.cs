@@ -26,11 +26,9 @@ namespace Holdem.Core
         public bool IsEmpty => Count == 0;
         public int Count => _cards.Length - _index;
 
-        public Deck Reset()
+        public void Reset()
         {
             _index = 0;
-
-            return this;
         }
 
         public virtual void Shuffle()

@@ -93,7 +93,8 @@ namespace Holdem.Core.Tests
             var deck = new Deck();
             var cards1 = deck.Draw(52).ToList();
 
-            deck.Reset().Shuffle();
+            deck.Reset();
+            deck.Shuffle();
             var cards2 = deck.Draw(52).ToList();
 
             Assert.False(cards1.SequenceEqual(cards2));
