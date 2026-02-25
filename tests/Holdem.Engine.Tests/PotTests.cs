@@ -11,9 +11,9 @@ namespace Holdem.Engine.Tests
 {
     public class PotTests
     {
-        private const string Hi = "As Ks Qs Js 10s";
-        private const string Mid = "10s 9h 8d 7c 6s";
-        private const string Lo = "10s 8h 6d 4c 2s";
+        private const string Hi = "As Ks Qs Js 10s"; // Royal straight
+        private const string Mi = "10s 9h 8d 7c 6s"; // Straight
+        private const string Lo = "10s 8h 6d 4c 2s"; // High card
 
         private static string P() => Guid.NewGuid().ToString();
 
@@ -48,8 +48,8 @@ namespace Holdem.Engine.Tests
         [Fact]
         public void Test_MultipleWinners()
         {
-            string[] names = [P(), P(), P()];
-            string[] cards = [Hi, Hi, Lo];
+            string[] names = [P(), P(), P(), P()];
+            string[] cards = [Hi, Hi, Lo, Hi];
 
             var hands = cards.Select(ToHand);
             var ranks = hands.Select(FromHand);
@@ -59,19 +59,24 @@ namespace Holdem.Engine.Tests
             pot.Add(names[0], 11);
             pot.Add(names[1], 11);
             pot.Add(names[2], 11);
+            pot.Add(names[3], 11);
 
             var events = pot.Award(trips);
 
-            // Odd chip goes to first player.
-            Assert.Contains(events, e => Validate(e, names[0], pot.Total / 2 + 1));
-            Assert.Contains(events, e => Validate(e, names[1], pot.Total / 2));
+            // Pot: $44
+            // 3 winners -> ($15, $15, $14)
+
+            Assert.Equal(3, events.Count(e => e is PotAwardedEvent));
+            Assert.Contains(events, e => Validate(e, names[0], pot.Total / 3 + 1));
+            Assert.Contains(events, e => Validate(e, names[1], pot.Total / 3 + 1));
+            Assert.Contains(events, e => Validate(e, names[3], pot.Total / 3));
         }
 
         [Fact]
         public void Test_SidePot()
         {
             string[] names = [P(), P(), P()];
-            string[] cards = [Mid, Hi, Lo];
+            string[] cards = [Mi, Hi, Lo];
 
             var hands = cards.Select(ToHand);
             var ranks = hands.Select(FromHand);
@@ -87,6 +92,7 @@ namespace Holdem.Engine.Tests
             // P2 wins (main) pot, $30
             // P1 wins (side) pot, $40
 
+            Assert.Equal(2, events.Count(e => e is PotAwardedEvent));
             Assert.Contains(events, e => e is PotAwardedEvent p && Validate(p, names[1], 30));
             Assert.Contains(events, e => e is PotAwardedEvent p && Validate(p, names[0], 40));
         }

@@ -50,12 +50,12 @@ namespace Holdem.Common.Extensions
         }
 
         public static IEnumerable<(T1, T2)> Zip<T1, T2>(
-            IEnumerable<T1> enum1,
-            IEnumerable<T2> enum2
+            IEnumerable<T1> enumerable1,
+            IEnumerable<T2> enumerable2
         )
         {
-            using var e1 = enum1.GetEnumerator();
-            using var e2 = enum2.GetEnumerator();
+            using var e1 = enumerable1.GetEnumerator();
+            using var e2 = enumerable2.GetEnumerator();
 
             while (e1.MoveNext() && e2.MoveNext())
             {
@@ -64,14 +64,14 @@ namespace Holdem.Common.Extensions
         }
 
         public static IEnumerable<(T1, T2, T3)> Zip<T1, T2, T3>(
-            IEnumerable<T1> enum1,
-            IEnumerable<T2> enum2,
-            IEnumerable<T3> enum3
+            IEnumerable<T1> enumerable1,
+            IEnumerable<T2> enumerable2,
+            IEnumerable<T3> enumerable3
         )
         {
-            using var e1 = enum1.GetEnumerator();
-            using var e2 = enum2.GetEnumerator();
-            using var e3 = enum3.GetEnumerator();
+            using var e1 = enumerable1.GetEnumerator();
+            using var e2 = enumerable2.GetEnumerator();
+            using var e3 = enumerable3.GetEnumerator();
 
             while (e1.MoveNext() && e2.MoveNext() && e3.MoveNext())
             {
@@ -87,6 +87,7 @@ namespace Holdem.Common.Extensions
         {
             if (enumerable == null)
                 throw new ArgumentNullException(nameof(enumerable));
+
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
 
@@ -111,6 +112,38 @@ namespace Holdem.Common.Extensions
             }
 
             return max;
+        }
+
+        public static List<T> ManyMaxBy<T, TKey>(this IEnumerable<T> source, Func<T, TKey> selector)
+            where TKey : IComparable<TKey>
+        {
+            using var e = source.GetEnumerator();
+
+            if (e.MoveNext() == false)
+                throw new InvalidOperationException("Collection empty.");
+
+            var maxItems = new List<T> { e.Current };
+            var maxKey = selector(e.Current);
+
+            while (e.MoveNext())
+            {
+                var candidate = e.Current;
+                var candidateKey = selector(candidate);
+                int comparison = candidateKey.CompareTo(maxKey);
+
+                if (comparison > 0)
+                {
+                    maxItems.Clear();
+                    maxItems.Add(candidate);
+                    maxKey = candidateKey;
+                }
+                if (comparison == 0)
+                {
+                    maxItems.Add(candidate);
+                }
+            }
+
+            return maxItems;
         }
     }
 }

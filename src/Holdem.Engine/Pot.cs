@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Holdem.Common.Extensions;
 using Holdem.Core;
 
 namespace Holdem.Engine
@@ -59,9 +59,7 @@ namespace Holdem.Engine
 
             foreach (var sidePot in BuildSidePots())
             {
-                var eligible = contestants.Where(c => sidePot.IsEligible(c.PlayerId));
-                var ranking = eligible.Max(c => c.Ranking);
-                var winners = contestants.Where(c => c.Ranking == ranking).ToList();
+                var winners = contestants.Where(sidePot.IsEligible).ManyMaxBy(c => c.Ranking);
 
                 int count = winners.Count;
                 int share = sidePot.Amount / count;
@@ -117,7 +115,7 @@ namespace Holdem.Engine
 
             private readonly IEnumerable<string> _eligible = [.. eligible];
 
-            public bool IsEligible(string playerId) => _eligible.Contains(playerId);
+            public bool IsEligible(Contestant c) => _eligible.Contains(c.PlayerId);
         }
     }
 }
