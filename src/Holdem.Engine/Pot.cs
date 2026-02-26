@@ -113,7 +113,7 @@ namespace Holdem.Engine
         {
             public int Amount { get; } = amount;
 
-            private readonly IEnumerable<string> _eligible = [.. eligible];
+            private readonly HashSet<string> _eligible = [.. eligible];
 
             public bool IsEligible(Contestant c) => _eligible.Contains(c.PlayerId);
         }

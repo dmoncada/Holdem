@@ -85,44 +85,21 @@ namespace Holdem.Common.Extensions
         )
             where TKey : IComparable<TKey>
         {
-            if (enumerable == null)
-                throw new ArgumentNullException(nameof(enumerable));
-
-            if (selector == null)
-                throw new ArgumentNullException(nameof(selector));
-
-            using var enumerator = enumerable.GetEnumerator();
-
-            if (enumerator.MoveNext() == false)
-                throw new InvalidOperationException("Collection empty.");
-
-            var max = enumerator.Current;
-            var maxKey = selector(max);
-
-            while (enumerator.MoveNext())
-            {
-                var candidate = enumerator.Current;
-                var candidateKey = selector(candidate);
-
-                if (candidateKey.CompareTo(maxKey) > 0)
-                {
-                    max = candidate;
-                    maxKey = candidateKey;
-                }
-            }
-
-            return max;
+            return ManyMaxBy(enumerable, selector)[0];
         }
 
-        public static List<T> ManyMaxBy<T, TKey>(this IEnumerable<T> source, Func<T, TKey> selector)
+        public static List<TSource> ManyMaxBy<TSource, TKey>(
+            this IEnumerable<TSource> enumerable,
+            Func<TSource, TKey> selector
+        )
             where TKey : IComparable<TKey>
         {
-            using var e = source.GetEnumerator();
+            using var e = enumerable.GetEnumerator();
 
             if (e.MoveNext() == false)
                 throw new InvalidOperationException("Collection empty.");
 
-            var maxItems = new List<T> { e.Current };
+            var maxItems = new List<TSource> { e.Current };
             var maxKey = selector(e.Current);
 
             while (e.MoveNext())

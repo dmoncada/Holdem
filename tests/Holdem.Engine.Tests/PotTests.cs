@@ -93,8 +93,8 @@ namespace Holdem.Engine.Tests
             // P1 wins (side) pot, $40
 
             Assert.Equal(2, events.Count(e => e is PotAwardedEvent));
-            Assert.Contains(events, e => e is PotAwardedEvent p && Validate(p, names[1], 30));
-            Assert.Contains(events, e => e is PotAwardedEvent p && Validate(p, names[0], 40));
+            Assert.Contains(events, e => Validate(e, names[1], 30));
+            Assert.Contains(events, e => Validate(e, names[0], 40));
         }
     }
 }

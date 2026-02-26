@@ -2,9 +2,9 @@ namespace Holdem.Engine
 {
     public enum PlayerActionType
     {
-        Bet,
-        Call,
-        Check,
         Fold,
+        Check,
+        Call,
+        Bet,
     }
 }

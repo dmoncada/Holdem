@@ -8,7 +8,6 @@ using Holdem.Common.Extensions;
 using Holdem.Core;
 using Stateless;
 using Stateless.Graph;
-using Ranking = Holdem.Core.PokerHandRanking;
 
 namespace Holdem.Engine
 {
@@ -67,7 +66,7 @@ namespace Holdem.Engine
         private Street? _street = null;
         private Pot _pot = null;
 
-        public PokerStateMachine(PokerTable table, int smallBet, Deck deck = null)
+        public PokerStateMachine(int smallBet, Deck deck = null)
         {
             _machine = BuildStateMachine();
 
@@ -75,14 +74,16 @@ namespace Holdem.Engine
 
             _smallBet = smallBet; // The smallest betting unit.
 
-            _table = table;
+            _table = new();
 
             Reset();
         }
 
-        public bool IsReady => CurrentState == State.WaitingForPlayers;
+        public PokerTable Table => _table;
         public bool IsDealing => DealStates.Contains(CurrentState);
         public bool IsBetting => BettingStates.Contains(CurrentState);
+        public bool IsReady => CurrentState == State.WaitingForPlayers && NumActive > 1;
+
         private State CurrentState => _machine?.State ?? State.WaitingForPlayers;
         private int NumActive => _table.AllActiveWithStack.Count();
 
@@ -159,25 +160,29 @@ namespace Holdem.Engine
 
             machine
                 .Configure(State.Cleanup)
-                .OnEntry(Cleanup)
+                .OnEntryAsync(CleanupAsync)
                 .Permit(Trigger.NextState, State.WaitingForPlayers);
 
             return machine;
         }
 
-        public async Task AdvanceAsync()
+        public async Task StartAsync()
+        {
+            if (IsReady == false)
+                throw new InvalidOperationException("Cannot start, not ready.");
+
+            await AdvanceAsync();
+        }
+
+        private async Task AdvanceAsync()
         {
             if (IsBetting && _round.Complete == false)
-            {
                 throw new InvalidOperationException("Cannot advance, betting round ongoing.");
-            }
 
             var trigger = Trigger.NextState;
 
             if (IsBetting && NumActive <= 1)
-            {
                 trigger = Trigger.ToShowdown;
-            }
 
             await _machine.FireAsync(trigger);
         }
@@ -363,8 +368,8 @@ namespace Holdem.Engine
             {
                 var p = player.Id;
                 var c = player.Hole.Concat(_board);
-                var h = Ranking.BestHand(c);
-                var r = Ranking.FromHand(h);
+                var h = PokerHandRanking.BestHand(c);
+                var r = PokerHandRanking.FromHand(h);
                 return new Contestant(p, h, r);
             });
 
@@ -409,9 +414,13 @@ namespace Holdem.Engine
             await WriteAsync(new ShowdownCompletedEvent());
         }
 
-        private void Cleanup()
+        private async Task CleanupAsync()
         {
             _table.MoveButton(); // Move button clockwise to the left.
+
+            // _channel.Writer.Complete(); // <- Correct?
+
+            await AdvanceAsync();
         }
 
         private async Task WriteAsync(PokerEvent e)

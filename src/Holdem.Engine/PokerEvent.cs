@@ -21,16 +21,16 @@ namespace Holdem.Engine
     public record PlayerTurnStartedEvent(string PlayerId, PokerGameSnapshot Snapshot)
         : PokerEvent(DateTime.UtcNow);
 
-    public record PlayerCheckedEvent(string PlayerId)
+    public record PlayerFoldedEvent(string PlayerId)
         : PokerEvent(DateTime.UtcNow);
 
-    public record PlayerBetEvent(string PlayerId, int Amount)
+    public record PlayerCheckedEvent(string PlayerId)
         : PokerEvent(DateTime.UtcNow);
 
     public record PlayerCalledEvent(string PlayerId, int Amount)
         : PokerEvent(DateTime.UtcNow);
 
-    public record PlayerFoldedEvent(string PlayerId)
+    public record PlayerBetEvent(string PlayerId, int Amount)
         : PokerEvent(DateTime.UtcNow);
 
     public record HandShownEvent(string PlayerId, string BestHand)

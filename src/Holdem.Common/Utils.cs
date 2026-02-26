@@ -63,7 +63,7 @@ namespace Holdem.Common
 
         public static long NumCombinations(int n, int k)
         {
-            if (k < 0 || k > n)
+            if (k < 0 || n < k)
             {
                 throw new ArgumentOutOfRangeException(nameof(k));
             }
@@ -113,6 +113,15 @@ namespace Holdem.Common
             }
 
             return a;
+        }
+
+        public static string ShortGuid()
+        {
+            return Convert
+                .ToBase64String(Guid.NewGuid().ToByteArray())
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .TrimEnd('=');
         }
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Holdem.Engine
 {
-    public class PokerTable(IEnumerable<Player> players, int button = 0) // : IEnumerator<Player>
+    public class PokerTable(IEnumerable<Player> players = null, int button = 0) // : IEnumerator<Player>
     {
-        private readonly List<Player> _players = [.. players];
+        private readonly List<Player> _players = players?.ToList() ?? [];
 
         private int _button = button;
         private int _index = button;
@@ -20,6 +20,16 @@ namespace Holdem.Engine
         public void Reset()
         {
             _index = _button;
+        }
+
+        public void Add(Player player)
+        {
+            if (_players.IndexOf(player) >= 0)
+            {
+                throw new InvalidOperationException("Player already in table.");
+            }
+
+            _players.Add(player); // Simply append.
         }
 
         public bool MoveNext()

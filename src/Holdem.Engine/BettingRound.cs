@@ -120,16 +120,16 @@ namespace Holdem.Engine
 
             switch (action.Type)
             {
-                case PlayerActionType.Check:
-                {
-                    e = new PlayerCheckedEvent(playerId);
-                    break;
-                }
-
                 case PlayerActionType.Fold:
                 {
                     player.Active = false;
                     e = new PlayerFoldedEvent(playerId);
+                    break;
+                }
+
+                case PlayerActionType.Check:
+                {
+                    e = new PlayerCheckedEvent(playerId);
                     break;
                 }
 

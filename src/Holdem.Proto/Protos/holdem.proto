@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package holdem;
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Holdem.Proto";
+
+service PokerService {
+  rpc Connect(stream ConnectRequest) returns (stream ConnectResponse);
+}
+
+message ConnectRequest {
+  oneof payload {
+    JoinTable join = 1;
+    PlayerAction action = 2;
+    LeaveTable leave = 3;
+  }
+}
+
+message ConnectResponse {
+  google.protobuf.Timestamp timestamp = 1;
+
+  oneof payload {
+    PokerEvent event = 2;
+    PokerError error = 3;
+  }
+}
+
+message JoinTable {
+  string table_id = 1;
+  string player_name = 2;
+}
+
+message LeaveTable {
+  // Table ID not needed.
+}
+
+message PlayerAction {
+  enum PlayerActionType {
+    PLAYER_ACTION_TYPE_UNSPECIFIED = 0;
+    PLAYER_ACTION_TYPE_FOLD = 1;
+    PLAYER_ACTION_TYPE_CHECK = 2;
+    PLAYER_ACTION_TYPE_CALL = 3;
+    PLAYER_ACTION_TYPE_BET = 4;
+  }
+
+  PlayerActionType type = 1;
+  int32 amount = 2;
+}
+
+message PokerEvent {
+  string type = 2;
+  string data = 3;
+}
+
+message PokerError {
+  string message = 1;
+}
