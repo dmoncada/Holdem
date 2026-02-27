@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  SLN: Holdem.sln
+  SLN: server/Holdem.sln
 
 jobs:
   build:

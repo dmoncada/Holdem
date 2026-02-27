@@ -28,11 +28,9 @@ namespace Holdem.Engine.Tests
             var cards = "Kh Jd Qh 10c Jh 10s 2h 9s 6c";
             var deck = new MockDeck(cards.Split(' ').Select(Card.Parse));
 
-            var p1 = new Player("P1", BigBlind * 2); // Button.
+            var p1 = new Player("P1", BigBlind * 2); // <- Button.
             var p2 = new Player("P2", BigBlind * 2);
-            Player[] players = [p1, p2];
-
-            int wins = players.Sum(p => p.Stack);
+            int wins = p1.Stack + p2.Stack;
 
             var game = new PokerStateMachine(BigBlind, deck);
             await game.AddPlayerAsync(p1);

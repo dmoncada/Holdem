@@ -34,11 +34,7 @@ namespace Holdem.Server
                 throw new InvalidOperationException("Player already connected.");
             }
 
-            Console.WriteLine(
-                "Adding player: '{0}' with ID: {1}",
-                player.PlayerName,
-                player.PlayerId
-            );
+            Console.WriteLine("Adding player: '{0}', ID: {1}", player.PlayerName, player.PlayerId);
 
             var joining = new Player(id: player.PlayerId, name: player.PlayerName, stack: 10_000);
 
