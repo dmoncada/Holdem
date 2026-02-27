@@ -12,9 +12,9 @@ service PokerService {
 
 message ConnectRequest {
   oneof payload {
-    JoinTable join = 1;
+    JoinSession join = 1;
     PlayerAction action = 2;
-    LeaveTable leave = 3;
+    LeaveSession leave = 3;
   }
 }
 
@@ -27,13 +27,13 @@ message ConnectResponse {
   }
 }
 
-message JoinTable {
-  string table_id = 1;
+message JoinSession {
+  string session_id = 1;
   string player_name = 2;
 }
 
-message LeaveTable {
-  // Table ID not needed.
+message LeaveSession {
+  // Session ID not needed.
 }
 
 message PlayerAction {

@@ -32,7 +32,7 @@ namespace Holdem.Server.Services
                         {
                             var join = request.Join;
                             var playerId = ShortGuid();
-                            var sessionId = join.TableId;
+                            var sessionId = join.SessionId;
                             var playerName = join.PlayerName;
 
                             player = new PlayerConnection(

@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos/holdem.proto" GrpcServices="Both" />
+    <Protobuf Include="Protos\holdem.proto" GrpcServices="Both" />
   </ItemGroup>
 
   <ItemGroup>
