@@ -79,7 +79,6 @@ namespace Holdem.Engine
             Reset();
         }
 
-        public PokerTable Table => _table;
         public bool IsDealing => DealStates.Contains(CurrentState);
         public bool IsBetting => BettingStates.Contains(CurrentState);
         public bool IsReady => CurrentState == State.WaitingForPlayers && NumActive > 1;
@@ -164,6 +163,13 @@ namespace Holdem.Engine
                 .Permit(Trigger.NextState, State.WaitingForPlayers);
 
             return machine;
+        }
+
+        public async Task AddPlayerAsync(Player player)
+        {
+            _table.Add(player);
+
+            await WriteAsync(new PlayerJoinedEvent(player.Name, player.Stack));
         }
 
         public async Task StartAsync()

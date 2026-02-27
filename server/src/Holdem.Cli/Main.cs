@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Holdem.Proto;
 
-namespace Holdem.Console
+namespace Holdem.Cli
 {
     public class EntryPoint
     {
@@ -11,11 +12,11 @@ namespace Holdem.Console
         {
             const string address = "http://localhost:5192";
 
-            System.Console.Write("Session ID: ");
-            var sessionId = System.Console.ReadLine();
+            Console.Write("Session ID: ");
+            var sessionId = Console.ReadLine();
 
-            System.Console.Write("Player Name: ");
-            var playerName = System.Console.ReadLine();
+            Console.Write("Player Name: ");
+            var playerName = Console.ReadLine();
 
             using var channel = GrpcChannel.ForAddress(address);
             var client = new PokerService.PokerServiceClient(channel);
@@ -28,7 +29,7 @@ namespace Holdem.Console
                 }
             );
 
-            System.Console.WriteLine("Connected.");
+            Console.WriteLine("Connected.");
 
             var readTask = Task.Run(async () =>
             {
@@ -36,22 +37,22 @@ namespace Holdem.Console
                 {
                     if (response.PayloadCase == ConnectResponse.PayloadOneofCase.Event)
                     {
-                        System.Console.WriteLine(
-                            $"[EVENT] {response.Event.Type} | {response.Event.Data}"
-                        );
+                        Console.WriteLine($"[EVENT] {response.Event.Type} | {response.Event.Data}");
                     }
                     else if (response.PayloadCase == ConnectResponse.PayloadOneofCase.Error)
                     {
-                        System.Console.WriteLine($"[ERROR] {response.Error.Message}");
+                        Console.WriteLine($"[ERROR] {response.Error.Message}");
                     }
                 }
             });
+
+            await Task.Delay(TimeSpan.FromSeconds(3));
 
             await call.RequestStream.CompleteAsync();
 
             await readTask;
 
-            System.Console.WriteLine("Disconnected.");
+            Console.WriteLine("Disconnected.");
         }
     }
 }

@@ -35,8 +35,8 @@ namespace Holdem.Engine.Tests
             int wins = players.Sum(p => p.Stack);
 
             var game = new PokerStateMachine(BigBlind, deck);
-            game.Table.Add(p1);
-            game.Table.Add(p2);
+            await game.AddPlayerAsync(p1);
+            await game.AddPlayerAsync(p2);
 
             var events = new List<PokerEvent>();
 

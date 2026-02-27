@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using Holdem.Common.Extensions;
 using Holdem.Core;
+using static Holdem.Common.Utils;
 
 namespace Holdem.Engine
 {
-    public class Player(string name, int stack)
+    public class Player(string name, int stack, string id = null)
     {
-        public string Id { get; } = Guid.NewGuid().ToString();
+        public string Id { get; } = id ?? ShortGuid();
         public string Name { get; } = name;
         public int Stack { get; set; } = stack;
         public bool Active { get; set; } = true;

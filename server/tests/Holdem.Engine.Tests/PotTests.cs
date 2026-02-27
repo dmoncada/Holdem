@@ -4,6 +4,7 @@ using System.Linq;
 using Holdem.Core;
 using Xunit;
 using static Holdem.Common.Extensions.EnumerableExtensions;
+using static Holdem.Common.Utils;
 using static Holdem.Core.PokerHandRanking;
 using Ranking = Holdem.Core.PokerHandRanking;
 
@@ -15,7 +16,7 @@ namespace Holdem.Engine.Tests
         private const string Mi = "10s 9h 8d 7c 6s"; // Straight
         private const string Lo = "10s 8h 6d 4c 2s"; // High card
 
-        private static string P() => Guid.NewGuid().ToString();
+        private static string P() => ShortGuid();
 
         private static IEnumerable<Card> ToHand(string s) => s.Split(' ').Select(Card.Parse);
 

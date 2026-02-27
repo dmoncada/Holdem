@@ -6,6 +6,9 @@ namespace Holdem.Engine
 {
     public abstract record PokerEvent(DateTime Timestamp);
 
+    public record PlayerJoinedEvent(string Name, int Stack)
+        : PokerEvent(DateTime.Now);
+
     public record BoardCardsDealtEvent(Street Street, string Cards)
         : PokerEvent(DateTime.UtcNow);
 
