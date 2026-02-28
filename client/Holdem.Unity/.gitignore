@@ -98,5 +98,8 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
+# Holdem types
+/[Aa]ssets/Plugins/Holdem.*
+
 # NuGet for Unity
-/Assets/Packages
+/[Aa]ssets/Packages
