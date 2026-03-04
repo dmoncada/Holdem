@@ -15,21 +15,35 @@ namespace Holdem.Engine
         public IEnumerable<Player> AllActive => _players.Where(p => p.Active);
         public IEnumerable<Player> AllActiveWithStack => _players.Where(p => p.CanAct);
         public bool IsHeadsUp => _players.Count(p => p.CanAct) == 2;
-        public Player Current => _players[_index];
+        public Player Current => _players.Count > 0 ? _players[_index] : null;
 
         public void Reset()
         {
             _index = _button;
         }
 
-        public void Add(Player player)
+        public bool Add(Player player)
         {
-            if (_players.IndexOf(player) >= 0)
+            if (_players.IndexOf(player) < 0)
             {
-                throw new InvalidOperationException("Player already in table.");
+                _players.Add(player);
+
+                return true;
             }
 
-            _players.Add(player); // Simply append.
+            return false; // Already in table.
+        }
+
+        public bool Remove(string playerId)
+        {
+            if (Current?.Id == playerId)
+            {
+                MoveButton();
+            }
+
+            int result = _players.RemoveAll(p => p.Id == playerId);
+
+            return result > 0;
         }
 
         public bool MoveNext()

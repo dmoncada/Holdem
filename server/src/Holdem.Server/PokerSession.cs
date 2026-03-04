@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Holdem.Server
 
             _engine = new PokerStateMachine(smallBet: 100);
 
-            _ = BroadcastAsync();
+            _ = NotifyAsync();
         }
 
         public string Id { get; }
@@ -31,12 +32,12 @@ namespace Holdem.Server
         {
             if (_players.TryAdd(player.PlayerId, player) == false)
             {
-                throw new InvalidOperationException("Player already connected.");
+                Console.Error.WriteLine("Player already connected.");
             }
 
             Console.WriteLine("Adding player: '{0}', ID: {1}", player.PlayerName, player.PlayerId);
 
-            var joining = new Player(id: player.PlayerId, name: player.PlayerName, stack: 10_000);
+            var joining = new Player(id: player.PlayerId, name: player.PlayerName, stack: 1_000);
 
             await _engine.AddPlayerAsync(joining);
 
@@ -46,24 +47,22 @@ namespace Holdem.Server
             }
         }
 
-        public void RemovePlayer(string playerId)
+        public async Task RemovePlayerAsync(string playerId)
         {
-            _players.TryRemove(playerId, out _);
+            if (_players.TryRemove(playerId, out _) == false)
+            {
+                Console.Error.WriteLine("Player already disconnected.");
+            }
 
-            // TODO(dmoncada): remove player from table.
+            await _engine.RemovePlayerAsync(playerId);
         }
 
         public async Task ApplyActionAsync(string playerId, Proto.PlayerAction action)
         {
-            await _engine.ApplyActionAsync(playerId, Map(action));
+            await _engine.ApplyActionAsync(playerId, default); //action.ToEngine());
         }
 
-        private Engine.PlayerAction Map(Proto.PlayerAction action)
-        {
-            throw new NotImplementedException(); // TODO(dmoncada)
-        }
-
-        private async Task BroadcastAsync()
+        private async Task NotifyAsync()
         {
             await foreach (var e in _engine.Events.ReadAllAsync(_cts.Token))
             {
@@ -74,21 +73,39 @@ namespace Holdem.Server
                     Event = new Proto.PokerEvent
                     {
                         Type = e.GetType().Name,
+
                         Data = JsonSerializer.Serialize(e),
                     },
                 };
 
-                foreach (var player in _players.Values)
-                {
-                    try
-                    {
-                        await player.ResponseStream.WriteAsync(response);
-                    }
-                    catch
-                    {
-                        // TODO(dmoncada): handle broken clients.
-                    }
-                }
+                await NotifyManyAsync(response);
+            }
+        }
+
+        private async Task NotifySingleAsync(ConnectResponse response, string playerId)
+        {
+            var player = _players.Values.Single(p => p.PlayerId == playerId);
+
+            await NotifyPlayerAsync(response, player);
+        }
+
+        private async Task NotifyManyAsync(ConnectResponse response)
+        {
+            foreach (var player in _players.Values)
+            {
+                await NotifyPlayerAsync(response, player);
+            }
+        }
+
+        private async Task NotifyPlayerAsync(ConnectResponse response, PlayerConnection player)
+        {
+            try
+            {
+                await player.ResponseStream.WriteAsync(response);
+            }
+            catch
+            {
+                // TODO(dmoncada): handle broken clients.
             }
         }
     }

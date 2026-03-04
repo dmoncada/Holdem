@@ -31,9 +31,9 @@ namespace Holdem.Server.Services
                         case ConnectRequest.PayloadOneofCase.Join:
                         {
                             var join = request.Join;
-                            var playerId = ShortGuid();
                             var sessionId = join.SessionId;
                             var playerName = join.PlayerName;
+                            var playerId = ShortGuid();
 
                             player = new PlayerConnection(
                                 sessionId,
@@ -61,21 +61,28 @@ namespace Holdem.Server.Services
                             if (player == null)
                                 throw new RpcException(NotJoined);
 
-                            session.RemovePlayer(player.PlayerId);
-                            return;
+                            await session.RemovePlayerAsync(player.PlayerId);
+                            return; // <- Break out entirely.
                         }
                     }
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception)
             {
-                // Client disconnected.
+                if (context.CancellationToken.IsCancellationRequested)
+                {
+                    // Client disconnected.
+                }
+                else
+                {
+                    throw;
+                }
             }
             finally
             {
-                if (player != null && session != null)
+                if (session != null && player != null)
                 {
-                    session.RemovePlayer(player.PlayerId);
+                    await session.RemovePlayerAsync(player.PlayerId);
                 }
             }
         }

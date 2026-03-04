@@ -167,9 +167,18 @@ namespace Holdem.Engine
 
         public async Task AddPlayerAsync(Player player)
         {
-            _table.Add(player);
+            if (_table.Add(player))
+            {
+                await WriteAsync(new PlayerJoinedEvent(player.Id));
+            }
+        }
 
-            await WriteAsync(new PlayerJoinedEvent(player.Name, player.Stack));
+        public async Task RemovePlayerAsync(string playerId)
+        {
+            if (_table.Remove(playerId))
+            {
+                await WriteAsync(new PlayerLeftEvent(playerId));
+            }
         }
 
         public async Task StartAsync()
@@ -211,12 +220,11 @@ namespace Holdem.Engine
 
         private async Task OnDealCardsEntryAsync()
         {
-            var events = new List<PokerEvent>();
+            var next = _street?.Next() ?? Street.Preflop;
 
-            _street = _street?.Next() ?? Street.Preflop;
+            var events = new List<PokerEvent>() { new DealCardsStartedEvent(next) };
 
-            var street = _street.Value;
-            switch (street)
+            switch (next)
             {
                 case Street.Preflop:
                     events.AddRange(DealCards(_table.AllActiveWithStack.Rotate(1)));
@@ -225,19 +233,21 @@ namespace Holdem.Engine
                 case Street.Flop:
                     _deck.Draw(); // <- Burn.
                     _board.AddRange(_deck.Draw(3));
-                    events.Add(new BoardCardsDealtEvent(street, _board.AsString()));
+                    events.Add(new BoardCardsDealtEvent(next, _board.AsString()));
                     break;
 
                 case Street.Turn:
                 case Street.River:
                     _deck.Draw(); // <- Burn.
                     _board.Add(_deck.Draw());
-                    events.Add(new BoardCardsDealtEvent(street, _board.AsString()));
+                    events.Add(new BoardCardsDealtEvent(next, _board.AsString()));
                     break;
 
                 default:
                     throw new InvalidEnumArgumentException(nameof(_street));
             }
+
+            _street = next;
 
             foreach (var e in events)
             {
@@ -269,6 +279,8 @@ namespace Holdem.Engine
 
         private async Task OnBettingRoundEntryAsync()
         {
+            await WriteAsync(new BettingRoundStartedEvent());
+
             _table.Reset();
 
             AdvanceCurrentPlayer();
@@ -276,8 +288,6 @@ namespace Holdem.Engine
             var structure = new FixedLimitStructure(_table, _smallBet, MaxRaises);
 
             _round = new BettingRound(_table, _street.Value, _smallBet, structure);
-
-            await WriteAsync(new BettingRoundStartedEvent());
 
             await SignalCurrentPlayerAsync();
         }
